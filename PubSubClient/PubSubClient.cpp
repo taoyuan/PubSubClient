@@ -194,6 +194,10 @@ uint16_t PubSubClient::readPacket(uint8_t* lengthLength) {
       len++;
    }
    
+   if (len < MQTT_MAX_PACKET_SIZE) {
+	   memset(buffer + len, 0, MQTT_MAX_PACKET_SIZE - len);
+   }
+
    if (!this->stream && len > MQTT_MAX_PACKET_SIZE) {
        len = 0; // This will cause the packet to be ignored.
    }

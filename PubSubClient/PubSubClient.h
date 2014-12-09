@@ -15,7 +15,7 @@
 #define MQTT_TX_BLOCK_SIZE 64
 
 // MQTT_MAX_PACKET_SIZE : Maximum packet size
-#define MQTT_MAX_PACKET_SIZE 127
+#define MQTT_MAX_PACKET_SIZE 128
 
 // MQTT_KEEPALIVE : keepAlive interval in Seconds
 #define MQTT_KEEPALIVE 15
@@ -44,7 +44,7 @@
 class PubSubClient {
 private:
    Client* _client;
-   uint8_t buffer[MQTT_MAX_PACKET_SIZE + 1];
+   uint8_t buffer[MQTT_MAX_PACKET_SIZE];
    uint16_t nextMsgId;
    unsigned long lastOutActivity;
    unsigned long lastInActivity;
