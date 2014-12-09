@@ -11,6 +11,9 @@
 #include "Client.h"
 #include "Stream.h"
 
+// MQTT_MAX_BLOCK_SIZE : Block size for writing
+#define MQTT_TX_BLOCK_SIZE 64
+
 // MQTT_MAX_PACKET_SIZE : Maximum packet size
 #define MQTT_MAX_PACKET_SIZE 128
 
@@ -49,6 +52,7 @@ private:
    void (*callback)(char*,uint8_t*,unsigned int);
    uint16_t readPacket(uint8_t*);
    uint8_t readByte();
+   size_t write(uint8_t* buf, uint16_t length);
    boolean write(uint8_t header, uint8_t* buf, uint16_t length);
    uint16_t writeString(char* string, uint8_t* buf, uint16_t pos);
    uint8_t *ip;
@@ -63,6 +67,7 @@ public:
    PubSubClient(uint8_t *, uint16_t, void(*)(char*,uint8_t*,unsigned int),Client& client, Stream&);
    PubSubClient(char*, uint16_t, void(*)(char*,uint8_t*,unsigned int),Client& client);
    PubSubClient(char*, uint16_t, void(*)(char*,uint8_t*,unsigned int),Client& client, Stream&);
+   virtual ~PubSubClient();
    boolean connect(char *);
    boolean connect(char *, char *, char *);
    boolean connect(char *, char *, uint8_t, uint8_t, char *);

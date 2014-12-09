@@ -46,6 +46,10 @@ PubSubClient::PubSubClient(char* domain, uint16_t port, void (*callback)(char*,u
    this->stream = &stream;
 }
 
+PubSubClient::~PubSubClient() {
+
+}
+
 void PubSubClient::dispatch(const char *topic, const uint8_t *payload, unsigned int size) {
    if (callback) {
       callback((char *)topic, (uint8_t *)payload, size);
@@ -207,7 +211,7 @@ boolean PubSubClient::loop() {
          } else {
             buffer[0] = MQTTPINGREQ;
             buffer[1] = 0;
-            _client->write(buffer,2);
+            write(buffer,2);
             lastOutActivity = t;
             lastInActivity = t;
             pingOutstanding = true;
@@ -238,7 +242,7 @@ boolean PubSubClient::loop() {
                  buffer[1] = 2;
                  buffer[2] = (msgId >> 8);
                  buffer[3] = (msgId & 0xFF);
-                 _client->write(buffer,4);
+                 write(buffer,4);
                  lastOutActivity = t;
 
                } else {
@@ -248,7 +252,7 @@ boolean PubSubClient::loop() {
             } else if (type == MQTTPINGREQ) {
                buffer[0] = MQTTPINGRESP;
                buffer[1] = 0;
-               _client->write(buffer,2);
+               write(buffer,2);
             } else if (type == MQTTPINGRESP) {
                pingOutstanding = false;
             }
@@ -319,7 +323,7 @@ boolean PubSubClient::publish_P(char* topic, uint8_t* PROGMEM payload, unsigned 
    
    pos = writeString(topic,buffer,pos);
    
-   rc += _client->write(buffer,pos);
+   rc += write(buffer,pos);
    
    for (i=0;i<plength;i++) {
       rc += _client->write((char)pgm_read_byte_near(payload + i));
@@ -328,6 +332,21 @@ boolean PubSubClient::publish_P(char* topic, uint8_t* PROGMEM payload, unsigned 
    lastOutActivity = millis();
    
    return rc == tlen + 4 + plength;
+}
+
+size_t PubSubClient::write(uint8_t* buf, uint16_t length) {
+   if (length <= MQTT_TX_BLOCK_SIZE) {
+      return _client->write(buf, length);
+   }
+   size_t n = 0, count;
+   uint8_t* curr = buf;
+   uint8_t* last = buf + length;
+   while (curr < last) {
+      count = min(MQTT_TX_BLOCK_SIZE, last - curr);
+      n += _client->write(curr, count);
+      curr += count;
+   }
+   return n;
 }
 
 boolean PubSubClient::write(uint8_t header, uint8_t* buf, uint16_t length) {
@@ -351,7 +370,7 @@ boolean PubSubClient::write(uint8_t header, uint8_t* buf, uint16_t length) {
    for (int i=0;i<llen;i++) {
       buf[5-llen+i] = lenBuf[i];
    }
-   rc = _client->write(buf+(4-llen),length+1+llen);
+   rc = write(buf+(4-llen),length+1+llen);
    
    lastOutActivity = millis();
    return (rc == 1+llen+length);
@@ -399,7 +418,7 @@ boolean PubSubClient::unsubscribe(char* topic) {
 void PubSubClient::disconnect() {
    buffer[0] = MQTTDISCONNECT;
    buffer[1] = 0;
-   _client->write(buffer,2);
+   write(buffer,2);
    _client->stop();
    lastInActivity = lastOutActivity = millis();
 }
