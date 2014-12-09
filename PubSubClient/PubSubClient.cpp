@@ -46,6 +46,12 @@ PubSubClient::PubSubClient(char* domain, uint16_t port, void (*callback)(char*,u
    this->stream = &stream;
 }
 
+void PubSubClient::dispatch(const char *topic, const uint8_t *payload, unsigned int size) {
+   if (callback) {
+      callback((char *)topic, (uint8_t *)payload, size);
+   }
+}
+
 boolean PubSubClient::connect(char *id) {
    return connect(id,NULL,NULL,0,0,0,0);
 }
@@ -216,30 +222,28 @@ boolean PubSubClient::loop() {
             lastInActivity = t;
             uint8_t type = buffer[0]&0xF0;
             if (type == MQTTPUBLISH) {
-               if (callback) {
-                  uint16_t tl = (buffer[llen+1]<<8)+buffer[llen+2];
-                  char topic[tl+1];
-                  for (uint16_t i=0;i<tl;i++) {
-                     topic[i] = buffer[llen+3+i];
-                  }
-                  topic[tl] = 0;
-                  // msgId only present for QOS>0
-                  if ((buffer[0]&0x06) == MQTTQOS1) {
-                    msgId = (buffer[llen+3+tl]<<8)+buffer[llen+3+tl+1];
-                    payload = buffer+llen+3+tl+2;
-                    callback(topic,payload,len-llen-3-tl-2);
-                    
-                    buffer[0] = MQTTPUBACK;
-                    buffer[1] = 2;
-                    buffer[2] = (msgId >> 8);
-                    buffer[3] = (msgId & 0xFF);
-                    _client->write(buffer,4);
-                    lastOutActivity = t;
+               uint16_t tl = (buffer[llen+1]<<8)+buffer[llen+2];
+               char topic[tl+1];
+               for (uint16_t i=0;i<tl;i++) {
+                  topic[i] = buffer[llen+3+i];
+               }
+               topic[tl] = 0;
+               // msgId only present for QOS>0
+               if ((buffer[0]&0x06) == MQTTQOS1) {
+                 msgId = (buffer[llen+3+tl]<<8)+buffer[llen+3+tl+1];
+                 payload = buffer+llen+3+tl+2;
+                 dispatch(topic,payload,len-llen-3-tl-2);
+                 
+                 buffer[0] = MQTTPUBACK;
+                 buffer[1] = 2;
+                 buffer[2] = (msgId >> 8);
+                 buffer[3] = (msgId & 0xFF);
+                 _client->write(buffer,4);
+                 lastOutActivity = t;
 
-                  } else {
-                    payload = buffer+llen+3+tl;
-                    callback(topic,payload,len-llen-3-tl);
-                  }
+               } else {
+                 payload = buffer+llen+3+tl;
+                 dispatch(topic,payload,len-llen-3-tl);
                }
             } else if (type == MQTTPINGREQ) {
                buffer[0] = MQTTPINGRESP;

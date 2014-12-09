@@ -55,6 +55,8 @@ private:
    char* domain;
    uint16_t port;
    Stream* stream;
+protected:
+   virtual void dispatch(const char *topic, const uint8_t *payload, unsigned int size);
 public:
    PubSubClient();
    PubSubClient(uint8_t *, uint16_t, void(*)(char*,uint8_t*,unsigned int),Client& client);
