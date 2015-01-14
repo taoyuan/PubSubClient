@@ -11,6 +11,8 @@
 #include "Client.h"
 #include "Stream.h"
 
+//#define PUBSUB_DEBUG
+
 // MQTT_MAX_BLOCK_SIZE : Block size for writing
 #define MQTT_TX_BLOCK_SIZE 64
 
@@ -52,6 +54,8 @@ private:
    void (*callback)(char*,uint8_t*,unsigned int);
    uint16_t readPacket(uint8_t*);
    uint8_t readByte();
+   int timedRead(unsigned int timeout = 20);
+   int reset(void);
    size_t write(uint8_t* buf, uint16_t length);
    boolean write(uint8_t header, uint8_t* buf, uint16_t length);
    uint16_t writeString(char* string, uint8_t* buf, uint16_t pos);
