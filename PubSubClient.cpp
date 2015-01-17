@@ -150,12 +150,6 @@ boolean PubSubClient::connect(char *id, char *user, char *pass, char* willTopic,
 	return false;
 }
 
-uint8_t PubSubClient::readByte() {
-	while (!_client->available()) {
-	}
-	return _client->read();
-}
-
 int PubSubClient::timedRead(unsigned int timeout) {
 	unsigned long startMillis = millis();
 	int c;
@@ -390,18 +384,18 @@ boolean PubSubClient::publish_P(char* topic, uint8_t* PROGMEM payload, unsigned 
 size_t PubSubClient::write(uint8_t* buf, uint16_t length) {
 	size_t n = 0;
 
-	if (length <= MQTT_TX_BLOCK_SIZE) {
+//	if (length <= MQTT_TX_BLOCK_SIZE) {
 		n = _client->write(buf, length);
-	} else {
-		size_t count;
-		uint8_t* curr = buf;
-		uint8_t* last = buf + length;
-		while (curr < last) {
-			count = min(MQTT_TX_BLOCK_SIZE, last - curr);
-			n += _client->write(curr, count);
-			curr += count;
-		}
-	}
+//	} else {
+//		size_t count;
+//		uint8_t* curr = buf;
+//		uint8_t* last = buf + length;
+//		while (curr < last) {
+//			count = min(MQTT_TX_BLOCK_SIZE, last - curr);
+//			n += _client->write(curr, count);
+//			curr += count;
+//		}
+//	}
 
 	lastOutActivity = millis();
 	return n;

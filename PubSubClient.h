@@ -17,7 +17,7 @@
 #define MQTT_TX_BLOCK_SIZE 64
 
 // MQTT_MAX_PACKET_SIZE : Maximum packet size
-#define MQTT_MAX_PACKET_SIZE 128
+#define MQTT_MAX_PACKET_SIZE 256
 
 // MQTT_KEEPALIVE : keepAlive interval in Seconds
 #define MQTT_KEEPALIVE 15
@@ -53,7 +53,6 @@ private:
    bool pingOutstanding;
    void (*callback)(char*,uint8_t*,unsigned int);
    uint16_t readPacket(uint8_t*);
-   uint8_t readByte();
    int timedRead(unsigned int timeout = 20);
    int reset(void);
    size_t write(uint8_t* buf, uint16_t length);
